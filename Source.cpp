@@ -167,11 +167,11 @@ void main()
 	}
 	else if (dimension == 3)
 	{
-		int  a = 100, b = 100;
+		int  a = 50, b = 50, c = 50;
 		auto start_time = std::chrono::high_resolution_clock::now();
 		std::cout << "Running...\n";
-		Grid2D grid(a, b, BLANK, MOORE);
-		grid.populate_nuclei(12, EVENLY);
+		Grid3D grid(a, b, c, BLANK, MOORE);
+		grid.populate_nuclei(100, EVENLY);
 		grid.dumpVTK("data0.vtk");
 		uint16_t is_working = 1;
 
@@ -179,15 +179,15 @@ void main()
 		{
 			is_working = grid.run();
 			std::cout << "\r[";
-			double pom = a * b - is_working;
+			double pom = a * b * c - is_working;
 			for (size_t i = 0; i < 100; i++)
 			{
-				if (i < (pom/(a*b)*100))
+				if (i < (pom/(a*b*c)*100))
 					std::cout << "|";
 				else
 					std::cout << " ";
 			}
-			std::cout << "] " << std::setprecision(4) << (pom / (a * b) * 100) << "%";
+			std::cout << "] " << std::setprecision(4) << (pom / (a * b * c) * 100) << "%";
 		} while (is_working);
 
 		grid.dumpVTK("data1.vtk");

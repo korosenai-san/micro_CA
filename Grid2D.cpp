@@ -23,29 +23,35 @@ Grid2D::~Grid2D()
 
 uint64_t Grid2D::run()
 {
-	for (uint32_t i = 0; i < x_size; i++)
+	for (int i = 0; i < x_size; i++)
 	{
-		for (uint32_t j = 0; j < y_size; j++)
+#pragma omp parallel for
+		for (int j = 0; j < y_size; j++)
 		{
 			if (grid[i][j] == 0)
 			{
 				std::vector<uint16_t> pom;
 				pom = find_neighbours(i, j);
+				uint16_t neighbour_value;
 
 				switch (neighbour)
 				{
 				case MOORE:
-					if (moore(pom))
+					neighbour_value = moore(pom);
+					if (neighbour_value)
 					{
-						grid_Copy[i][j] = moore(pom);
-						nuclei_count.at(moore(pom)) = nuclei_count.at(moore(pom)) + 1;
+						grid_Copy[i][j] = neighbour_value;
+#pragma omp critical
+						nuclei_count.at(neighbour_value) = nuclei_count.at(neighbour_value) + 1;
 					}
 					break;
 				case NEUMANN:
-					if (neumann(pom))
+					neighbour_value = neumann(pom);
+					if (neighbour_value)
 					{
-						grid_Copy[i][j] = neumann(pom);
-						nuclei_count.at(neumann(pom)) = nuclei_count.at(neumann(pom)) + 1;
+						grid_Copy[i][j] = neighbour_value;
+#pragma omp critical
+						nuclei_count.at(neighbour_value) = nuclei_count.at(neighbour_value) + 1;
 					}
 					break;
 				default:
@@ -57,6 +63,7 @@ uint64_t Grid2D::run()
 		}
 	}
 
+#pragma omp barrier
 	grid_copy(grid_Copy, grid);
 
 	uint64_t total_size = 0;
@@ -467,7 +474,16 @@ uint16_t Grid2D::moore(std::vector<uint16_t> neighbours)
 		if (search == pom.end())
 			pom.insert({ neighbours.at(i), 1 });
 		else
-			pom.insert_or_assign(neighbours.at(i), search->second + 1);
+			pom.at(search->first) = search->second + 1;
+			//pom.insert_or_assign(neighbours.at(i), search->second + 1);
+
+		/*auto qwe2 = neighbours.at(i+1);
+		auto search2 = pom.find(qwe2);
+
+		if (search2 == pom.end())
+			pom.insert({ neighbours.at(i+1), 1 });
+		else
+			pom.at(search2->first) = search2->second + 1;*/
 	}
 
 	for (auto entry : pom)
@@ -498,7 +514,8 @@ uint16_t Grid2D::neumann(std::vector<uint16_t> neighbours)
 			if (search == pom.end())
 				pom.insert({ neighbours.at(i), 1 });
 			else
-				pom.insert_or_assign(neighbours.at(i), search->second + 1);
+				pom.at(search->first) = search->second + 1;
+				//pom.insert_or_assign(neighbours.at(i), search->second + 1);
 		}
 	}
 

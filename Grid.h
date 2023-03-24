@@ -5,6 +5,7 @@
 #include <map>
 #include "Cell.h"
 #include <iostream>
+#include <omp.h>
 
 enum NUCLEI
 {
